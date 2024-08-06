@@ -8,7 +8,28 @@ class AuthService {
       .post(`${API_URL}/login`, { username, password })
       .then(response => {
         if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data));
+          const decodedToken = JSON.parse(atob(response.data.accessToken.split('.')[1]));
+          const user = {
+            ...response.data,
+            isAdmin: decodedToken.isAdmin,
+          };
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        return response.data;
+      });
+  }
+
+  register(username, password, isAdmin) {
+    return axios
+      .post(`${API_URL}/register`, { username, password, isAdmin })
+      .then(response => {
+        if (response.data.accessToken) {
+          const decodedToken = JSON.parse(atob(response.data.accessToken.split('.')[1]));
+          const user = {
+            ...response.data,
+            isAdmin: decodedToken.isAdmin,
+          };
+          localStorage.setItem('user', JSON.stringify(user));
         }
         return response.data;
       });
@@ -28,7 +49,9 @@ class AuthService {
       .post(`${API_URL}/token`, { token: user.refreshToken })
       .then(response => {
         if (response.data.accessToken) {
+          const decodedToken = JSON.parse(atob(response.data.accessToken.split('.')[1]));
           user.accessToken = response.data.accessToken;
+          user.isAdmin = decodedToken.isAdmin;
           localStorage.setItem('user', JSON.stringify(user));
         }
         return response.data;
